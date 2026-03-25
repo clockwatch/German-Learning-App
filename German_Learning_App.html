@@ -467,7 +467,6 @@
 <body>
 
 <div id="app">
-  <!-- ── SIDEBAR ── -->
   <aside id="sidebar">
     <h2>German Learning</h2>
 
@@ -480,12 +479,11 @@
 
       <button class="btn-secondary" onclick="document.getElementById('subtitle-input').click()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-        Load Subtitle File
+        Load Subtitle Files
       </button>
-      <input id="subtitle-input" type="file" accept=".srt,.vtt">
+      <input id="subtitle-input" type="file" accept=".srt,.vtt" multiple>
     </div>
 
-    <!-- Tabs -->
     <div style="display:flex;flex-direction:column;flex:1;gap:12px;min-height:0;">
       <div class="tabs-header">
         <button class="tab-btn active" onclick="switchTab('videos')">Videos</button>
@@ -506,9 +504,7 @@
     </div>
   </aside>
 
-  <!-- ── PLAYER AREA ── -->
   <main id="player-area">
-    <!-- Welcome screen -->
     <div id="welcome">
       <div class="welcome-inner">
         <div class="welcome-dots">
@@ -521,11 +517,9 @@
       </div>
     </div>
 
-    <!-- Seek flash indicators -->
     <div id="seek-left" class="seek-flash">◀◀ 5s</div>
     <div id="seek-right" class="seek-flash">5s ▶▶</div>
 
-    <!-- Video element -->
     <video id="video-el"
       onplay="onVideoPlay()"
       onpause="onVideoPause()"
@@ -534,24 +528,20 @@
       onfullscreenchange="onFullscreenChange()"
     ></video>
 
-    <!-- Subtitle overlay -->
     <div id="subtitle-overlay" style="display:none;">
       <div id="subtitle-text"></div>
     </div>
 
-    <!-- Controls -->
     <div id="controls-overlay">
       <div id="progress-bar-wrapper" onclick="handleSeekClick(event)">
         <div id="progress-fill" style="width:0%"></div>
       </div>
       <div id="controls-row">
-        <!-- Play/Pause -->
         <button class="ctrl-btn" id="play-btn" onclick="togglePlay()" title="Play/Pause (Space)">
           <svg id="icon-play" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
           <svg id="icon-pause" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
         </button>
 
-        <!-- Volume -->
         <div id="volume-wrapper">
           <button class="ctrl-btn" id="mute-btn" onclick="toggleMute()" title="Mute/Unmute">
             <svg id="icon-vol" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg>
@@ -560,10 +550,8 @@
           <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" oninput="handleVolumeChange(this.value)">
         </div>
 
-        <!-- Time -->
         <div id="time-display">0:00 / 0:00</div>
 
-        <!-- Fullscreen -->
         <button class="ctrl-btn" onclick="toggleFullscreen()" title="Fullscreen">
           <svg id="icon-fullscreen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
           <svg id="icon-minimize" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
@@ -573,7 +561,6 @@
   </main>
 </div>
 
-<!-- Toast container -->
 <div id="toast"></div>
 
 <script>
@@ -582,6 +569,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 const state = {
   videos: [],
+  subtitleFiles: [], 
   selectedVideoIdx: null,
   subtitles: [],
   savedWords: JSON.parse(localStorage.getItem('de_saved_words') || '[]'),
@@ -598,6 +586,7 @@ const state = {
   popupWordEl: null,
   hoverPauseActive: false,
   controlsHideTimer: null,
+  hoverIntentTimer: null,
 };
 
 const BACKEND_URL = "https://video-deutsch-hub.preview.emergentagent.com";
@@ -643,9 +632,27 @@ document.getElementById('video-input').addEventListener('change', function(e) {
 });
 
 document.getElementById('subtitle-input').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  loadSubtitleFile(file);
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  state.subtitleFiles = [...(state.subtitleFiles || []), ...files];
+
+  if (state.selectedVideoIdx !== null) {
+    const currentVideoName = state.videos[state.selectedVideoIdx].name;
+    const vBase = getBaseName(currentVideoName).toLowerCase();
+    const match = state.subtitleFiles.find(f => getBaseName(f.name).toLowerCase() === vBase);
+
+    if (match) {
+      loadSubtitleFile(match);
+    } else if (files.length === 1) {
+      loadSubtitleFile(files[0]);
+    } else {
+      showToast(`${files.length} subtitles ready for auto-matching`, 'success');
+    }
+  } else {
+    showToast(`${files.length} subtitles ready for auto-matching`, 'success');
+  }
+
   this.value = '';
 });
 
@@ -664,6 +671,14 @@ function selectVideo(idx) {
   subtitleOv.style.display = 'none';
   renderVideoList();
   renderSubtitle();
+
+  if (state.subtitleFiles && state.subtitleFiles.length > 0) {
+    const vBase = getBaseName(file.name).toLowerCase();
+    const match = state.subtitleFiles.find(f => getBaseName(f.name).toLowerCase() === vBase);
+    if (match) {
+      loadSubtitleFile(match);
+    }
+  }
 }
 
 function renderVideoList() {
@@ -693,11 +708,11 @@ function loadSubtitleFile(file) {
       } else if (ext === 'vtt') {
         state.subtitles = parseVTT(text);
       } else {
-        // Try SRT first, then VTT
         state.subtitles = parseSRT(text);
         if (!state.subtitles.length) state.subtitles = parseVTT(text);
       }
       showToast('Subtitles loaded successfully', 'success');
+      renderSubtitle();
     } catch(err) {
       console.error('Subtitle parse error:', err);
       showToast('Failed to parse subtitle file', 'error');
@@ -708,13 +723,11 @@ function loadSubtitleFile(file) {
 
 function parseSRT(text) {
   const subs = [];
-  // Normalize line endings
   const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   const blocks = normalized.split(/\n\s*\n+/);
   for (const block of blocks) {
     const lines = block.trim().split('\n');
     if (lines.length < 2) continue;
-    // First line may be index number
     let timeLineIdx = 0;
     if (/^\d+$/.test(lines[0].trim())) timeLineIdx = 1;
     const timeLine = lines[timeLineIdx];
@@ -725,7 +738,6 @@ function parseSRT(text) {
     const end = parseSRTTime(timeMatch[2]);
     const textLines = lines.slice(timeLineIdx + 1);
     const rawText = textLines.join(' ').trim();
-    // Strip HTML tags from SRT
     const cleanText = rawText.replace(/<[^>]+>/g, '').trim();
     if (cleanText) {
       subs.push({ start, end, text: cleanText });
@@ -735,7 +747,6 @@ function parseSRT(text) {
 }
 
 function parseSRTTime(t) {
-  // Handles both comma and period as ms separator
   const [hms, ms] = t.replace(',', '.').split('.');
   const [h, m, s] = hms.split(':').map(Number);
   return h * 3600 + m * 60 + s + parseFloat('0.' + ms);
@@ -746,7 +757,6 @@ function parseVTT(text) {
   const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   const lines = normalized.split('\n');
   let i = 0;
-  // Skip WEBVTT header
   while (i < lines.length && !lines[i].includes('-->')) i++;
   while (i < lines.length) {
     const timeLine = lines[i];
@@ -766,7 +776,6 @@ function parseVTT(text) {
     if (cleanText) {
       subs.push({ start, end, text: cleanText });
     }
-    // Skip blank lines
     while (i < lines.length && lines[i].trim() === '') i++;
   }
   return subs;
@@ -865,7 +874,6 @@ function seekBy(seconds) {
   if (!videoEl.src) return;
   const newTime = Math.max(0, Math.min(videoEl.duration || 0, videoEl.currentTime + seconds));
   videoEl.currentTime = newTime;
-  // Show flash indicator
   const flashEl = seconds < 0 ? seekLeft : seekRight;
   const label = seconds < 0 ? `◀◀ ${Math.abs(seconds)}s` : `${seconds}s ▶▶`;
   flashEl.textContent = label;
@@ -882,7 +890,6 @@ function toggleFullscreen() {
   }
 }
 
-// Controls visibility
 function showControls() {
   controlsOv.classList.remove('hidden');
 }
@@ -903,10 +910,16 @@ document.getElementById('player-area').addEventListener('mouseleave', () => {
   if (state.isPlaying) controlsOv.classList.add('hidden');
 });
 document.getElementById('player-area').addEventListener('click', (e) => {
-  // Only toggle play if not clicking on controls or subtitles
   if (e.target === videoEl) {
     togglePlay();
     scheduleControlsHide();
+  }
+});
+
+document.getElementById('player-area').addEventListener('dblclick', (e) => {
+  if (e.target === videoEl) {
+    e.preventDefault();
+    toggleFullscreen();
   }
 });
 
@@ -914,7 +927,6 @@ document.getElementById('player-area').addEventListener('click', (e) => {
 // KEYBOARD SHORTCUTS
 // ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
-  // Don't steal key events from inputs
   if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
   if (!videoEl.src) return;
 
@@ -972,14 +984,12 @@ function renderSubtitle() {
       subtitleOv.style.display = 'none';
       subtitleText.innerHTML = '';
       lastSubtitleText = null;
-      // Close any open popup
       closeAllPopups();
     }
     return;
   }
-  if (sub.text === lastSubtitleText) return; // no change
+  if (sub.text === lastSubtitleText) return; 
   lastSubtitleText = sub.text;
-  // Close popups when subtitle changes
   closeAllPopups();
   subtitleOv.style.display = 'flex';
 
@@ -1004,43 +1014,42 @@ let hoverLeaveTimer = null;
 function handleWordHover(spanEl, word) {
   if (!word) return;
   clearTimeout(hoverLeaveTimer);
+  clearTimeout(state.hoverIntentTimer);
 
-  // Pause video
-  if (!videoEl.paused) {
-    videoEl.pause();
-    state.hoverPauseActive = true;
-  }
+  // Updated delay to 0.2s
+  state.hoverIntentTimer = setTimeout(() => {
+    document.querySelectorAll('.word-popup').forEach(p => p.remove());
+    document.querySelectorAll('.subtitle-word').forEach(el => el.classList.remove('active-word'));
 
-  // Mark active
-  document.querySelectorAll('.subtitle-word').forEach(el => el.classList.remove('active-word'));
-  spanEl.classList.add('active-word');
+    if (!videoEl.paused) {
+      videoEl.pause();
+      state.hoverPauseActive = true;
+    }
 
-  state.hoveredWord = word;
-  state.popupWordEl = spanEl;
+    spanEl.classList.add('active-word');
+    state.hoveredWord = word;
+    state.popupWordEl = spanEl;
 
-  // Show popup immediately
-  showWordPopup(spanEl, word);
+    showWordPopup(spanEl, word);
 
-  // Fetch translation if not cached
-  if (!state.translationCache[word]) {
-    fetchTranslation(word, spanEl);
-  } else {
-    updatePopupContent(spanEl, word, state.translationCache[word]);
-  }
+    if (!state.translationCache[word]) {
+      fetchTranslation(word, spanEl);
+    } else {
+      updatePopupContent(spanEl, word, state.translationCache[word]);
+    }
+  }, 200); 
 }
 
 function handleWordLeave(spanEl) {
-  // Small delay so moving to the popup itself doesn't close it immediately
+  clearTimeout(state.hoverIntentTimer);
   clearTimeout(hoverLeaveTimer);
   hoverLeaveTimer = setTimeout(() => {
-    // Check if mouse is over this word's popup
     const popup = spanEl.querySelector('.word-popup');
     if (popup && popup.matches(':hover')) return;
 
     spanEl.classList.remove('active-word');
     closePopupFor(spanEl);
 
-    // Resume video if we paused it
     if (state.hoverPauseActive && videoEl.paused) {
       videoEl.play();
       state.hoverPauseActive = false;
@@ -1051,7 +1060,6 @@ function handleWordLeave(spanEl) {
 }
 
 function showWordPopup(spanEl, word) {
-  // Remove any existing popup on this element first
   const existing = spanEl.querySelector('.word-popup');
   if (existing) existing.remove();
 
@@ -1076,7 +1084,6 @@ function showWordPopup(spanEl, word) {
       >Save</button>
     </div>
   `;
-  // Keep video paused while hovering popup
   popup.addEventListener('mouseenter', () => {
     clearTimeout(hoverLeaveTimer);
   });
@@ -1113,9 +1120,7 @@ function closeAllPopups() {
   state.popupWordEl = null;
 }
 
-// ── PRIMARY: DeepL via unofficial JSON endpoint (no API key needed) ──────────
 async function translateWithDeepl(word) {
-  // DeepL's web app uses this endpoint internally
   const body = JSON.stringify({
     jsonrpc: '2.0',
     method: 'LMT_handle_jobs',
@@ -1155,7 +1160,6 @@ async function translateWithDeepl(word) {
   return translation;
 }
 
-// DeepL timestamp trick — improves response quality slightly
 function getDeeplTimestamp(text) {
   const iCount = (text.match(/i/gi) || []).length + 1;
   let ts = Date.now();
@@ -1165,13 +1169,11 @@ function getDeeplTimestamp(text) {
   return ts;
 }
 
-// ── FALLBACK: Google Translate unofficial endpoint ────────────────────────────
 async function translateWithGoogle(word) {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=de&tl=en&dt=t&q=${encodeURIComponent(word)}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Google HTTP ${resp.status}`);
   const data = await resp.json();
-  // Response structure: [ [ [translatedText, originalText, ...], ... ], ... ]
   const translation = data?.[0]?.map(chunk => chunk?.[0]).filter(Boolean).join('').trim();
   if (!translation || translation.toLowerCase() === word.toLowerCase()) {
     throw new Error('Google returned no useful translation');
@@ -1179,28 +1181,17 @@ async function translateWithGoogle(word) {
   return translation;
 }
 
-// ── ORCHESTRATOR ──────────────────────────────────────────────────────────────
 async function fetchTranslation(word, spanEl) {
   let translation = null;
-  let engine = '';
-
-  // 1️⃣ Try DeepL first
   try {
     translation = await translateWithDeepl(word);
-    engine = 'DeepL';
   } catch (deeplErr) {
-    console.warn('DeepL failed, trying Google:', deeplErr.message);
-    // 2️⃣ Fall back to Google Translate
     try {
       translation = await translateWithGoogle(word);
-      engine = 'Google';
-    } catch (googleErr) {
-      console.error('Google also failed:', googleErr.message);
-    }
+    } catch (googleErr) {}
   }
 
   if (translation) {
-    console.log(`[${engine}] ${word} → ${translation}`);
     state.translationCache[word] = translation;
     if (spanEl && spanEl.isConnected) {
       updatePopupContent(spanEl, word, translation);
@@ -1215,12 +1206,12 @@ async function fetchTranslation(word, spanEl) {
 }
 
 function pronounceWord(word) {
-  if ('speechSynthesis' in window) {
-    const utt = new SpeechSynthesisUtterance(word);
-    utt.lang = 'de-DE';
-    utt.rate = 0.9;
-    window.speechSynthesis.speak(utt);
-  }
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(word);
+  utt.lang = 'de-DE';
+  utt.rate = 0.85;
+  setTimeout(() => window.speechSynthesis.speak(utt), 50);
 }
 
 function saveWordFromPopup(word, btn) {
@@ -1235,12 +1226,10 @@ function saveWordFromPopup(word, btn) {
 // SAVED WORDS
 // ─────────────────────────────────────────────────────────────────────────────
 async function saveWord(german, english) {
-  // Check for duplicate
   if (state.savedWords.some(w => w.german === german)) {
     showToast('Word already saved', 'error');
     return;
   }
-  // Try backend first
   try {
     const resp = await fetch(`${API}/words`, {
       method: 'POST',
@@ -1254,7 +1243,6 @@ async function saveWord(german, english) {
       throw new Error('Backend unavailable');
     }
   } catch {
-    // Fallback: save locally
     const entry = { id: Date.now(), german, english };
     state.savedWords.unshift(entry);
   }
@@ -1332,7 +1320,11 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-// CSS.escape polyfill for older browsers
+function getBaseName(filename) {
+  const idx = filename.lastIndexOf('.');
+  return idx === -1 ? filename : filename.substring(0, idx);
+}
+
 if (!window.CSS || !CSS.escape) {
   window.CSS = window.CSS || {};
   CSS.escape = function(value) {
